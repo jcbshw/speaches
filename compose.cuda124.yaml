@@ -1,0 +1,23 @@
+# include:
+#   - compose.observability.yaml
+services:
+  speaches:
+    extends:
+      file: compose.yaml
+      service: speaches
+    image: ghcr.io/speaches-ai/speaches:latest-cuda124
+    build:
+      args:
+        BASE_IMAGE: nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+        PYTHON_VERSION: python3.10
+    environment:
+      - WHISPER__MODEL=Systran/faster-whisper-large-v3
+    volumes:
+      - hf-hub-cache:/home/ubuntu/.cache/huggingface/hub
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+volumes:
+  hf-hub-cache:

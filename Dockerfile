@@ -1,4 +1,5 @@
 ARG BASE_IMAGE=nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
+ARG PYTHON_VERSION
 # hadolint ignore=DL3006
 FROM ${BASE_IMAGE}
 LABEL org.opencontainers.image.source="https://github.com/speaches-ai/speaches"
@@ -6,12 +7,15 @@ LABEL org.opencontainers.image.licenses="MIT"
 # `ffmpeg` is installed because without it `gradio` won't work with mp3(possible others as well) files
 # hadolint ignore=DL3008
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ffmpeg python3.12 && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl ffmpeg ${PYTHON_VERSION} && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 # "ubuntu" is the default user on ubuntu images with UID=1000. This user is used for two reasons:
 #   1. It's generally a good practice to run containers as non-root users. See https://www.docker.com/blog/understanding-the-docker-user-instruction/
 #   2. Docker Spaces on HuggingFace don't support running containers as root. See https://huggingface.co/docs/hub/en/spaces-sdks-docker#permissions
+RUN if [ "$CUDA_VERSION" = "12.4.1" ]; then \
+	useradd ubuntu; \
+    fi
 USER ubuntu
 ENV HOME=/home/ubuntu \
     PATH=/home/ubuntu/.local/bin:$PATH
