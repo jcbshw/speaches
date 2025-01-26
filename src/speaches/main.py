@@ -10,6 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from speaches.dependencies import ApiKeyDependency, get_config
 from speaches.logger import setup_logger
+from speaches.routers.chat import (
+    router as chat_router,
+)
 from speaches.routers.misc import (
     router as misc_router,
 )
@@ -47,7 +50,7 @@ def create_app() -> FastAPI:
 
     logger.debug(f"Config: {config}")
 
-    if platform.machine() == "x86_64":
+    if platform.machine() != "x86_64":
         logger.warning("`POST /v1/audio/speech` with `model=rhasspy/piper-voices` is only supported on x86_64 machines")
 
     dependencies = []
@@ -56,6 +59,7 @@ def create_app() -> FastAPI:
 
     app = FastAPI(dependencies=dependencies, openapi_tags=TAGS_METADATA)
 
+    app.include_router(chat_router)
     app.include_router(stt_router)
     app.include_router(models_router)
     app.include_router(misc_router)
@@ -74,7 +78,7 @@ def create_app() -> FastAPI:
     if config.enable_ui:
         import gradio as gr
 
-        from speaches.gradio_app import create_gradio_demo
+        from speaches.ui.app import create_gradio_demo
 
         app = gr.mount_gradio_app(app, create_gradio_demo(config), path="/")
 
